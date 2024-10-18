@@ -1,9 +1,9 @@
-name: Deploy to Azure
+name: Deploy to Azure VM
 
 on:
   push:
     branches:
-      - main  # 在推送到 main 分支時觸發
+      - main
 
 jobs:
   build-and-deploy:
@@ -32,8 +32,9 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: "AsanaMock"  # 你的 Azure Web App 名稱
-        images: ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
+    - name: Deploy Docker container on Azure VM
+      run: |
+        ssh -i ${{ secrets.AZURE_VM_SSH_KEY }} ${{ secrets.AZURE_VM_USERNAME }}@${{ secrets.AZURE_VM_IP }} << 'EOF'
+        docker pull ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
+        docker run -d -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
+        EOF
