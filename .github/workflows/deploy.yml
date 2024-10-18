@@ -36,7 +36,7 @@ jobs:
       run: |
         echo "${{ secrets.AZURE_VM_SSH_KEY }}" > private_key.pem
         chmod 600 private_key.pem 
-        ssh -i private_key.pem ${{ secrets.AZURE_VM_USERNAME }}@${{ secrets.AZURE_VM_IP }} << 'EOF'
+        ssh -n -i private_key.pem ${{ secrets.AZURE_VM_USERNAME }}@${{ secrets.AZURE_VM_IP }} << 'EOF'
         docker pull ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
         docker run -d -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
         EOF
