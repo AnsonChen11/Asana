@@ -9,7 +9,7 @@ import (
 )
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, Go server with Gorilla Mux is running in docker!")
+	fmt.Fprintf(w, "Hello, Go server with Gorilla Mux is running in docker through CICD!")
 }
 
 func main() {
