@@ -37,10 +37,18 @@ jobs:
         echo "${{ secrets.AZURE_VM_SSH_KEY }}" > private_key.pem
         chmod 600 private_key.pem 
         ssh -t -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.AZURE_VM_USERNAME }}@${{ secrets.AZURE_VM_IP }} << EOF
-          echo "Checking Docker version..."
-          docker --version
-          echo "Pulling the Docker image..."
+          echo "Checking for running Docker containers..."
+          CONTAINER_ID=\$(sudo docker ps -q --filter "ancestor=${{ secrets.DOCKER_USERNAME }}/asana-backend:latest")
+          
+          if [ -n "\$CONTAINER_ID" ]; then
+            echo "Stopping existing container: \$CONTAINER_ID"
+            sudo docker stop \$CONTAINER_ID
+            sudo docker rm \$CONTAINER_ID
+          fi
+
+          echo "Pulling the latest Docker image..."
           sudo docker pull ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
-          echo "Running the Docker container..."
-          sudo docker run -d -p 8082:8082 ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
+          
+          echo "Running the new Docker container..."
+          sudo docker run -d -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
         EOF
