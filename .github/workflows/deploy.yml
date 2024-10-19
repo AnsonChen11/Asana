@@ -40,7 +40,7 @@ jobs:
           echo "Checking Docker version..."
           docker --version
           echo "Pulling the Docker image..."
-          docker pull ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
+          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
           echo "Running the Docker container..."
-          docker run -d -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
+          sudo docker run -d -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
         EOF
