@@ -42,5 +42,5 @@ jobs:
           echo "Pulling the Docker image..."
           sudo docker pull ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
           echo "Running the Docker container..."
-          sudo docker run -d -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
+          sudo docker run -d -p 8082:8082 ${{ secrets.DOCKER_USERNAME }}/asana-backend:latest
         EOF
