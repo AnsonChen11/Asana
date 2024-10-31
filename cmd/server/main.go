@@ -16,7 +16,7 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", helloHandler).Methods("GET", "OPTIONS")
-
+	r.Use(mux.CORSMethodMiddleware(r))
 	// Allow requests from the front-end domain
 	allowedOrigins := handlers.AllowedOrigins([]string{
 		"http://74.179.58.253:8080",
