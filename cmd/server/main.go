@@ -15,7 +15,7 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/", helloHandler).Methods("GET")
+	r.HandleFunc("/", helloHandler).Methods("GET", "OPTIONS")
 
 	// Allow requests from the front-end domain
 	allowedOrigins := handlers.AllowedOrigins([]string{
