@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - "dev_*"
 
 jobs:
-  build-and-deploy:
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
@@ -37,8 +39,8 @@ jobs:
         echo "${{ secrets.AZURE_VM_SSH_KEY }}" > private_key.pem
         chmod 600 private_key.pem 
         ssh -t -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.AZURE_VM_USERNAME }}@${{ secrets.AZURE_VM_IP }} << EOF
-          echo "Checking if any container is using port 8080..."
-          RUNNING_CONTAINER=\$(sudo docker ps -q --filter "publish=8080")
+          echo "Checking if any container is using port ${{ secrets.PROD_PORT }}..."
+          RUNNING_CONTAINER=\$(sudo docker ps -q --filter "publish=${{ secrets.PROD_PORT }}")
           if [ ! -z "\$RUNNING_CONTAINER" ]; then
             echo "Stopping and removing existing container..."
             sudo docker stop \$RUNNING_CONTAINER
@@ -46,6 +48,51 @@ jobs:
           fi
           echo "Pulling the latest Docker image..."
           sudo docker pull ${{ secrets.DOCKER_USERNAME }}/planora-backend:latest
-          echo "Running the Docker container..."
-          sudo docker run -d -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/planora-backend:latest
+          echo "Running the Docker container on port ${{ secrets.PROD_PORT }}..."
+          sudo docker run -d -p ${{ secrets.PROD_PORT }}:8080 ${{ secrets.DOCKER_USERNAME }}/planora-backend:latest
+        EOF
+
+  deploy-test:
+    if: startsWith(github.ref, 'refs/heads/dev_')
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout the code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push Docker image
+      run: |
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/planora-backend-dev:latest .
+        docker push ${{ secrets.DOCKER_USERNAME }}/planora-backend-dev:latest
+
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy Docker container on Azure VM (Test Environment)
+      run: |
+        echo "${{ secrets.AZURE_VM_SSH_KEY }}" > private_key.pem
+        chmod 600 private_key.pem 
+        ssh -t -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.AZURE_VM_USERNAME }}@${{ secrets.AZURE_VM_IP }} << EOF
+          echo "Checking if any container is using port ${{ secrets.DEV_PORT }}..."
+          RUNNING_CONTAINER=\$(sudo docker ps -q --filter "publish=${{ secrets.DEV_PORT }}")
+          if [ ! -z "\$RUNNING_CONTAINER" ]; then
+            echo "Stopping and removing existing container..."
+            sudo docker stop \$RUNNING_CONTAINER
+            sudo docker rm \$RUNNING_CONTAINER
+          fi
+          echo "Pulling the latest Docker image..."
+          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/planora-backend-dev:latest
+          echo "Running the Docker container on port ${{ secrets.DEV_PORT }}..."
+          sudo docker run -d -p ${{ secrets.DEV_PORT }}:8080 ${{ secrets.DOCKER_USERNAME }}/planora-backend-dev:latest
         EOF
