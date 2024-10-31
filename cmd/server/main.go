@@ -16,7 +16,11 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", helloHandler).Methods("GET")
-	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
+
+	allowedOrigins := handlers.AllowedOrigins([]string{
+		"http://74.179.58.253:8080",
+		"http://74.179.58.253:8082",
+	})
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"})
 	allowedHeaders := handlers.AllowedHeaders([]string{"Content-Type", "Authorization"})
 
