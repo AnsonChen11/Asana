@@ -15,17 +15,11 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/", helloHandler).Methods("GET", "OPTIONS")
-	r.Use(mux.CORSMethodMiddleware(r))
-	// Allow requests from the front-end domain
-	allowedOrigins := handlers.AllowedOrigins([]string{
-		"http://74.179.58.253:8080",
-		"http://74.179.58.253:8082",
-	})
+	r.HandleFunc("/", helloHandler).Methods("GET")
+	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"})
 	allowedHeaders := handlers.AllowedHeaders([]string{"Content-Type", "Authorization"})
 
-	// Start the server
 	fmt.Println("Server started at :8080")
 	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(allowedOrigins, allowedMethods, allowedHeaders)(r)))
 }
